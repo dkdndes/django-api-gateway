@@ -1,0 +1,48 @@
+nohup: ignoring input
+Watching for file changes with StatReloader
+[21/Apr/2025 13:34:39] "GET /users HTTP/1.1" 200 4454
+[21/Apr/2025 13:34:46] "GET /users HTTP/1.1" 200 4454
+Bad Request: /api/v1/response-transformations/
+[21/Apr/2025 13:34:51] "POST /api/v1/response-transformations/ HTTP/1.1" 400 49
+[21/Apr/2025 13:34:55] "POST /api/v1/response-transformations/ HTTP/1.1" 201 269
+[21/Apr/2025 13:34:58] "GET /users/1 HTTP/1.1" 200 533
+[21/Apr/2025 13:35:02] "POST /api/v1/response-transformations/ HTTP/1.1" 201 237
+[21/Apr/2025 13:35:06] "GET /users/1 HTTP/1.1" 200 555
+[21/Apr/2025 13:35:10] "POST /api/v1/request-transformations/ HTTP/1.1" 201 234
+[21/Apr/2025 13:35:16] "POST /post HTTP/1.1" 200 657
+Not Found: /
+[21/Apr/2025 13:37:31] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:37:34] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:37:38] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:37:41] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:37:44] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:37:47] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:37:50] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:37:54] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:37:57] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:38:00] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:38:03] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:38:06] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:38:10] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:38:13] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:38:16] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:38:19] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:38:23] "GET / HTTP/1.1" 404 2656
+Not Found: /
+[21/Apr/2025 13:38:26] "GET / HTTP/1.1" 404 2656
