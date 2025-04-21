@@ -2,7 +2,7 @@
 
 This project implements an API Gateway using Django and Django REST Framework. It allows you to define mapping rules between domains, API endpoints, and API payloads.
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/dkdndes/django-api-gateway)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](https://github.com/dkdndes/django-api-gateway)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 ## Features
