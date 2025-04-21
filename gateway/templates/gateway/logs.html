@@ -1,0 +1,353 @@
+{% extends 'gateway/base.html' %}
+
+{% block title %}Logs - API Gateway{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>API Logs
+                </h5>
+                <div>
+                    <a href="{% url 'gateway:clear_logs' %}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to clear all logs?')">
+                        <i class="fas fa-trash me-1"></i>Clear Logs
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" id="log-search" class="form-control" placeholder="Search logs...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-end">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary active" data-filter="all">All</button>
+                                <button type="button" class="btn btn-outline-success" data-filter="success">Success</button>
+                                <button type="button" class="btn btn-outline-danger" data-filter="error">Error</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Host</th>
+                                <th>Method</th>
+                                <th>Path</th>
+                                <th>Status</th>
+                                <th>Response Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr class="log-row {% if log.status_code >= 400 %}table-danger{% endif %}" data-host="{{ log.host }}" data-path="{{ log.path }}">
+                                <td>{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                                <td>{{ log.host }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ log.method }}</span>
+                                </td>
+                                <td>{{ log.path }}</td>
+                                <td>
+                                    <span class="badge {% if log.status_code < 400 %}bg-success{% else %}bg-danger{% endif %}">
+                                        {{ log.status_code }}
+                                    </span>
+                                </td>
+                                <td>{{ log.response_time|floatformat:2 }}ms</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-info view-log" data-bs-toggle="modal" data-bs-target="#logModal" data-log-id="{{ log.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    <p class="text-muted mb-0">No logs recorded yet</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if logs.has_other_pages %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if logs.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ logs.previous_page_number }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for i in logs.paginator.page_range %}
+                            {% if logs.number == i %}
+                            <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                            {% elif i > logs.number|add:'-3' and i < logs.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if logs.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ logs.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ logs.paginator.num_pages }}" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Log Detail Modal -->
+<div class="modal fade" id="logModal" tabindex="-1" aria-labelledby="logModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logModalLabel">Log Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center py-5" id="log-loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading log details...</p>
+                </div>
+                
+                <div id="log-content" style="display: none;">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Host</label>
+                                <p id="log-host" class="mb-0"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Path</label>
+                                <p id="log-path" class="mb-0"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Method</label>
+                                <p id="log-method" class="mb-0"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Status Code</label>
+                                <p id="log-status" class="mb-0"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Response Time</label>
+                                <p id="log-time" class="mb-0"></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Request Headers</label>
+                                <pre id="log-req-headers" class="bg-light p-3 rounded"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Request Body</label>
+                                <pre id="log-req-body" class="bg-light p-3 rounded"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Response Headers</label>
+                                <pre id="log-res-headers" class="bg-light p-3 rounded"></pre>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-0">
+                                <label class="form-label fw-bold">Response Body</label>
+                                <pre id="log-res-body" class="bg-light p-3 rounded"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Search functionality
+        $('#log-search').on('keyup', function() {
+            var value = $(this).val().toLowerCase();
+            $('.log-row').filter(function() {
+                var host = $(this).data('host').toLowerCase();
+                var path = $(this).data('path').toLowerCase();
+                var matches = host.indexOf(value) > -1 || path.indexOf(value) > -1;
+                $(this).toggle(matches);
+            });
+        });
+        
+        // Filter buttons
+        $('.btn-group button').on('click', function() {
+            var filter = $(this).data('filter');
+            
+            // Update active button
+            $('.btn-group button').removeClass('active');
+            $(this).addClass('active');
+            
+            // Filter logs
+            if (filter === 'all') {
+                $('.log-row').show();
+            } else if (filter === 'success') {
+                $('.log-row').hide();
+                $('.log-row:not(.table-danger)').show();
+            } else if (filter === 'error') {
+                $('.log-row').hide();
+                $('.log-row.table-danger').show();
+            }
+        });
+        
+        // View log details
+        $('.view-log').on('click', function() {
+            var logId = $(this).data('log-id');
+            
+            // Show loading, hide content
+            $('#log-loading').show();
+            $('#log-content').hide();
+            
+            // Fetch log details
+            $.ajax({
+                url: '{% url "gateway:log_detail_ajax" %}',
+                type: 'GET',
+                data: { 'log_id': logId },
+                success: function(response) {
+                    if (response.success) {
+                        var log = response.log;
+                        
+                        // Fill in log details
+                        $('#log-host').text(log.host);
+                        $('#log-path').text(log.path);
+                        $('#log-method').html('<span class="badge bg-primary">' + log.method + '</span>');
+                        
+                        var statusClass = log.status_code < 400 ? 'bg-success' : 'bg-danger';
+                        $('#log-status').html('<span class="badge ' + statusClass + '">' + log.status_code + '</span>');
+                        
+                        $('#log-time').text(log.response_time.toFixed(2) + 'ms');
+                        
+                        // Format JSON
+                        try {
+                            var reqHeaders = JSON.parse(log.request_headers);
+                            $('#log-req-headers').text(JSON.stringify(reqHeaders, null, 2));
+                        } catch (e) {
+                            $('#log-req-headers').text(log.request_headers || 'None');
+                        }
+                        
+                        try {
+                            var reqBody = JSON.parse(log.request_body);
+                            $('#log-req-body').text(JSON.stringify(reqBody, null, 2));
+                        } catch (e) {
+                            $('#log-req-body').text(log.request_body || 'None');
+                        }
+                        
+                        try {
+                            var resHeaders = JSON.parse(log.response_headers);
+                            $('#log-res-headers').text(JSON.stringify(resHeaders, null, 2));
+                        } catch (e) {
+                            $('#log-res-headers').text(log.response_headers || 'None');
+                        }
+                        
+                        try {
+                            var resBody = JSON.parse(log.response_body);
+                            $('#log-res-body').text(JSON.stringify(resBody, null, 2));
+                        } catch (e) {
+                            $('#log-res-body').text(log.response_body || 'None');
+                        }
+                        
+                        // Hide loading, show content
+                        $('#log-loading').hide();
+                        $('#log-content').show();
+                    } else {
+                        alert(response.error || 'Failed to load log details');
+                    }
+                },
+                error: function() {
+                    alert('An error occurred while loading log details');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

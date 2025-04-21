@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 
+# API router
 router = DefaultRouter()
 router.register(r'domains', views.DomainViewSet)
 router.register(r'endpoints', views.ApiEndpointViewSet)
@@ -9,6 +10,23 @@ router.register(r'request-transformations', views.RequestTransformationViewSet)
 router.register(r'response-transformations', views.ResponseTransformationViewSet)
 router.register(r'logs', views.ApiLogViewSet)
 
+app_name = 'gateway'
+
 urlpatterns = [
-    path('', include(router.urls)),
+    # API endpoints
+    path('api/v1/', include(router.urls)),
+    
+    # Web interface
+    path('', views.dashboard, name='dashboard'),
+    path('rules/', views.rules_list, name='rules'),
+    path('rules/create/', views.create_rule, name='create_rule'),
+    path('rules/<int:endpoint_id>/edit/', views.edit_rule, name='edit_rule'),
+    path('rules/<int:endpoint_id>/toggle/', views.toggle_rule, name='toggle_rule'),
+    path('rules/<int:endpoint_id>/delete/', views.delete_rule, name='delete_rule'),
+    path('logs/', views.logs_list, name='logs'),
+    path('logs/clear/', views.clear_logs, name='clear_logs'),
+    
+    # AJAX endpoints
+    path('ajax/create-domain/', views.create_domain_ajax, name='create_domain_ajax'),
+    path('ajax/log-detail/', views.log_detail_ajax, name='log_detail_ajax'),
 ]

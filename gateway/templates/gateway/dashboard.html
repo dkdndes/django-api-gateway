@@ -1,0 +1,163 @@
+{% extends 'gateway/base.html' %}
+
+{% block title %}Dashboard - API Gateway{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </h5>
+                <a href="{% url 'gateway:create_rule' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i>Create New Rule
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">Active Domains</h6>
+                                        <h2 class="mb-0">{{ domains_count }}</h2>
+                                    </div>
+                                    <i class="fas fa-globe fa-3x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">Active Endpoints</h6>
+                                        <h2 class="mb-0">{{ endpoints_count }}</h2>
+                                    </div>
+                                    <i class="fas fa-link fa-3x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">Transformations</h6>
+                                        <h2 class="mb-0">{{ transformations_count }}</h2>
+                                    </div>
+                                    <i class="fas fa-exchange-alt fa-3x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">Total Requests</h6>
+                                        <h2 class="mb-0">{{ logs_count }}</h2>
+                                    </div>
+                                    <i class="fas fa-chart-line fa-3x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-random me-2"></i>Recent Rules
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for endpoint in recent_endpoints %}
+                    <a href="{% url 'gateway:edit_rule' endpoint.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ endpoint.domain.name }} → {{ endpoint.path }}</h6>
+                            <small class="text-muted">{{ endpoint.updated_at|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">{{ endpoint.target_url }}</p>
+                        <small class="text-muted">
+                            <span class="badge {% if endpoint.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if endpoint.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                            <span class="badge bg-primary">{{ endpoint.method }}</span>
+                            {% with req_count=endpoint.request_transformations.count %}
+                                {% if req_count > 0 %}
+                                <span class="badge bg-info">{{ req_count }} Request Transform{{ req_count|pluralize }}</span>
+                                {% endif %}
+                            {% endwith %}
+                            {% with res_count=endpoint.response_transformations.count %}
+                                {% if res_count > 0 %}
+                                <span class="badge bg-warning">{{ res_count }} Response Transform{{ res_count|pluralize }}</span>
+                                {% endif %}
+                            {% endwith %}
+                        </small>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item text-center py-4">
+                        <p class="mb-0 text-muted">No rules created yet</p>
+                        <a href="{% url 'gateway:create_rule' %}" class="btn btn-primary btn-sm mt-2">
+                            <i class="fas fa-plus me-1"></i>Create New Rule
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'gateway:rules' %}" class="btn btn-outline-primary btn-sm">View All Rules</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>Recent Requests
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for log in recent_logs %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ log.host }} → {{ log.path }}</h6>
+                            <small class="text-muted">{{ log.created_at|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">
+                            <span class="badge bg-primary">{{ log.method }}</span>
+                            <span class="badge {% if log.status_code < 400 %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ log.status_code }}
+                            </span>
+                            <span class="text-muted">{{ log.response_time|floatformat:2 }}ms</span>
+                        </p>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-center py-4">
+                        <p class="mb-0 text-muted">No requests logged yet</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{% url 'gateway:logs' %}" class="btn btn-outline-primary btn-sm">View All Logs</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

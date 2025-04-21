@@ -1,0 +1,222 @@
+{% extends 'gateway/base.html' %}
+
+{% block title %}Rules - API Gateway{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-random me-2"></i>API Rules
+                </h5>
+                <a href="{% url 'gateway:create_rule' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i>Create New Rule
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" id="rule-search" class="form-control" placeholder="Search rules...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-end">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary active" data-filter="all">All</button>
+                                <button type="button" class="btn btn-outline-success" data-filter="active">Active</button>
+                                <button type="button" class="btn btn-outline-danger" data-filter="inactive">Inactive</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rules-container">
+                    {% for endpoint in endpoints %}
+                    <div class="if-then-container mb-4 rule-item {% if endpoint.is_active %}active{% else %}inactive{% endif %}" data-domain="{{ endpoint.domain.name }}" data-path="{{ endpoint.path }}">
+                        <div class="card if-then-card if-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-globe me-2"></i>IF request matches
+                                </h6>
+                                <div>
+                                    <span class="badge {% if endpoint.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                        {% if endpoint.is_active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                    <span class="badge bg-primary">{{ endpoint.method }}</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Domain</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-globe"></i></span>
+                                                <input type="text" class="form-control" value="{{ endpoint.domain.name }}" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Path</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                                <input type="text" class="form-control" value="{{ endpoint.path }}" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {% if endpoint.request_transformations.exists %}
+                                <div class="mt-3">
+                                    <h6 class="mb-3">Request Transformations</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Source Field</th>
+                                                    <th>Target Field</th>
+                                                    <th>Type</th>
+                                                    <th>Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for transform in endpoint.request_transformations.all %}
+                                                <tr>
+                                                    <td>{{ transform.source_field }}</td>
+                                                    <td>{{ transform.target_field }}</td>
+                                                    <td>{{ transform.get_transformation_type_display }}</td>
+                                                    <td>{{ transform.transformation_value|default:"-" }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="connector-line mx-auto"></div>
+                        
+                        <div class="card if-then-card then-card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-arrow-right me-2"></i>THEN forward to
+                                </h6>
+                                <div>
+                                    <span class="badge bg-secondary">{{ endpoint.timeout }}s timeout</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Target URL</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-external-link-alt"></i></span>
+                                        <input type="text" class="form-control" value="{{ endpoint.target_url }}" readonly>
+                                    </div>
+                                </div>
+                                
+                                {% if endpoint.response_transformations.exists %}
+                                <div class="mt-3">
+                                    <h6 class="mb-3">Response Transformations</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Source Field</th>
+                                                    <th>Target Field</th>
+                                                    <th>Type</th>
+                                                    <th>Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for transform in endpoint.response_transformations.all %}
+                                                <tr>
+                                                    <td>{{ transform.source_field }}</td>
+                                                    <td>{{ transform.target_field }}</td>
+                                                    <td>{{ transform.get_transformation_type_display }}</td>
+                                                    <td>{{ transform.transformation_value|default:"-" }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-center mt-2">
+                            <a href="{% url 'gateway:edit_rule' endpoint.id %}" class="btn btn-sm btn-outline-primary me-2">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <a href="{% url 'gateway:toggle_rule' endpoint.id %}" class="btn btn-sm {% if endpoint.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                                {% if endpoint.is_active %}
+                                <i class="fas fa-pause me-1"></i>Disable
+                                {% else %}
+                                <i class="fas fa-play me-1"></i>Enable
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="fas fa-random fa-4x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted">No API rules created yet</h5>
+                        <p class="text-muted">Create your first rule to start routing API requests</p>
+                        <a href="{% url 'gateway:create_rule' %}" class="btn btn-primary mt-2">
+                            <i class="fas fa-plus me-1"></i>Create New Rule
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Search functionality
+        $('#rule-search').on('keyup', function() {
+            var value = $(this).val().toLowerCase();
+            $('.rule-item').filter(function() {
+                var domain = $(this).data('domain').toLowerCase();
+                var path = $(this).data('path').toLowerCase();
+                var matches = domain.indexOf(value) > -1 || path.indexOf(value) > -1;
+                $(this).toggle(matches);
+            });
+        });
+        
+        // Filter buttons
+        $('.btn-group button').on('click', function() {
+            var filter = $(this).data('filter');
+            
+            // Update active button
+            $('.btn-group button').removeClass('active');
+            $(this).addClass('active');
+            
+            // Filter rules
+            if (filter === 'all') {
+                $('.rule-item').show();
+            } else if (filter === 'active') {
+                $('.rule-item').hide();
+                $('.rule-item.active').show();
+            } else if (filter === 'inactive') {
+                $('.rule-item').hide();
+                $('.rule-item.inactive').show();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -21,16 +21,20 @@ class ApiGatewayMiddleware:
     def _should_handle_request(self, request):
         """
         Determine if the request should be handled by the API gateway.
-        This checks if the request path starts with '/api/' and is not a Django admin or static file request.
+        This checks if the request path is not a Django admin, static file, or web interface URL.
         """
         path = request.path_info
         
-        # Skip Django admin, static files, API management, and docs URLs
+        # Skip Django admin, static files, API management, web interface, and docs URLs
         if (path.startswith('/admin/') or 
-            path.startswith('/static/') or 
-            path.startswith('/api/v1/') or 
-            path.startswith('/api-auth/') or 
-            path.startswith('/docs/')):
+            path.startswith('/static/') or
+            path.startswith('/api/v1/') or
+            path.startswith('/api-auth/') or
+            path.startswith('/docs/') or
+            path == '/' or
+            path.startswith('/rules/') or
+            path.startswith('/logs/') or
+            path.startswith('/ajax/')):
             return False
         
         # Handle API requests
