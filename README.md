@@ -10,6 +10,7 @@ This project implements an API Gateway using Django and Django REST Framework. I
 - Log API requests and responses
 - Admin interface for managing mappings
 - REST API for programmatic management
+- IFTTT-like web interface for easy rule management
 
 ## Models
 
@@ -44,6 +45,14 @@ This project implements an API Gateway using Django and Django REST Framework. I
    ```
 
 ## Usage
+
+### Web Interface
+
+Access the web interface at the root URL `/` to use the IFTTT-like rule management interface:
+
+- **Dashboard**: View gateway statistics and recent activity
+- **Rules**: Manage API routing rules with an intuitive IF-THEN interface
+- **Logs**: View and filter API request logs
 
 ### Admin Interface
 
