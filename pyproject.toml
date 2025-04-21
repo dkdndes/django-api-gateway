@@ -8,6 +8,7 @@ version = "0.1.1"
 description = "API Gateway with Django and IFTTT-like interface"
 readme = "README.md"
 authors = [
+    {name = "Peter Rosemann", email = "dkdndes@gmail.com"}
     {name = "OpenHands", email = "openhands@all-hands.dev"}
 ]
 license = {text = "MIT"}
