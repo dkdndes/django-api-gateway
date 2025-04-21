@@ -2,6 +2,9 @@
 
 This project implements an API Gateway using Django and Django REST Framework. It allows you to define mapping rules between domains, API endpoints, and API payloads.
 
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/dkdndes/django-api-gateway)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
 ## Features
 
 - Map domains to target APIs
@@ -147,6 +150,75 @@ Here's an example of how to use the API Gateway:
 2. Create an API endpoint for "GET /users" with target URL "https://api.example.com/users"
 3. Create a response transformation to map "data.users" to "users"
 4. Make a request to "http://example.com/users" or "http://localhost:8000/api/users"
+
+## Contributing
+
+We welcome contributions to the Django API Gateway project! Please follow these guidelines when contributing:
+
+### Branch Naming Convention
+
+When creating a new branch, use the following naming convention:
+
+- `feat/`: For new features or enhancements
+  - Example: `feat/add-jwt-authentication`
+- `fix/`: For bug fixes
+  - Example: `fix/cors-headers-issue`
+- `docs/`: For documentation updates
+  - Example: `docs/update-installation-guide`
+- `test/`: For adding or updating tests
+  - Example: `test/add-endpoint-tests`
+- `refactor/`: For code refactoring without changing functionality
+  - Example: `refactor/improve-middleware-performance`
+- `chore/`: For maintenance tasks, dependency updates, etc.
+  - Example: `chore/update-django-version`
+
+### Commit Message Guidelines
+
+We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+Types include:
+- `feat`: A new feature
+- `fix`: A bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, missing semicolons, etc.)
+- `refactor`: Code changes that neither fix bugs nor add features
+- `test`: Adding or updating tests
+- `chore`: Changes to the build process or auxiliary tools
+
+Example:
+```
+feat(transformation): add support for JSON path expressions
+
+Add the ability to use JSON path expressions in transformations
+to access nested properties more easily.
+
+Closes #123
+```
+
+### Semantic Versioning
+
+This project follows [Semantic Versioning](https://semver.org/):
+
+- **MAJOR** version when making incompatible API changes (X.y.z)
+- **MINOR** version when adding functionality in a backward-compatible manner (x.Y.z)
+- **PATCH** version when making backward-compatible bug fixes (x.y.Z)
+
+### Pull Request Process
+
+1. Create a branch using the naming convention above
+2. Make your changes and commit them using conventional commit messages
+3. Update documentation as needed
+4. Ensure all tests pass
+5. Submit a pull request to the `main` branch
+6. Request a review from a maintainer
 
 ## License
 
