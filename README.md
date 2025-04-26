@@ -4,6 +4,8 @@ This project implements an API Gateway using Django and Django REST Framework. I
 
 [![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](https://github.com/dkdndes/django-api-gateway)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/dkdndes/django-api-gateway/actions/workflows/django-tests.yml/badge.svg)](https://github.com/dkdndes/django-api-gateway/actions/workflows/django-tests.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/dkdndes/django-api-gateway/develop.svg)](https://codecov.io/gh/dkdndes/django-api-gateway)
 
 ## Features
 
@@ -91,6 +93,28 @@ Or using the requirements file:
 ```
 uv pip install -r requirements-dev.txt
 ```
+
+### Running Tests
+
+To run the tests, use pytest:
+
+```
+python -m pytest
+```
+
+To run tests with coverage:
+
+```
+python -m pytest --cov=gateway
+```
+
+To generate a coverage report:
+
+```
+python -m pytest --cov=gateway --cov-report=html
+```
+
+This will create a `htmlcov` directory with an HTML coverage report that you can view in your browser.
 
 ## Usage
 
