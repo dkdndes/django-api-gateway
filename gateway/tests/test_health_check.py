@@ -19,4 +19,4 @@ class HealthCheckTestCase(TestCase):
         data = response.json()
         self.assertEqual(data['status'], 'ok')
         self.assertEqual(data['service'], 'api-gateway')
-        self.assertEqual(data['version'], '0.1.1')
+        self.assertEqual(data['version'], '0.1.2')
