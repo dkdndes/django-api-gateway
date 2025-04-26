@@ -2,6 +2,9 @@
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["gateway", "api_gateway_project"]
+
 [project]
 name = "django-api-gateway"
 version = "0.1.1"
@@ -11,17 +14,19 @@ authors = [
     { name = "Peter Rosemann", email = "dkdndes@gmail.com" },
     { name = "OpenHands",     email = "openhands@all-hands.dev" }
 ]
-license = { text = "MIT" }
+license = "MIT"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
     "Framework :: Django",
     "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "django>=5.0.0",
     "djangorestframework>=3.14.0",
@@ -33,9 +38,10 @@ dependencies = [
 keywords = ["django", "api-gateway", "ifttt", "webhooks"]
 
 [project.urls]
-Homepage     = "https://github.com/insightgateway/django-api-gateway"
-Bug Tracker  = "https://github.com/insightgateway/django-api-gateway/issues"
+Homepage     = "https://github.com/dkdndes/django-api-gateway"
+"Bug-Tracker"  = "https://github.com/dkdndes/django-api-gateway/issues"
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-django"]
+test = ["pytest", "pytest-django", "pytest-cov"]
 docs = ["mkdocs", "mkdocstrings"]
+dev = ["pytest", "pytest-django", "pytest-cov", "mkdocs", "mkdocstrings"]
