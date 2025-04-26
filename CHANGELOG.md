@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- No unreleased changes
+
+## [0.1.2] - 2025-04-26
+
+### Added
 - Health check endpoint at /health/
 - Tests for health check endpoint
 

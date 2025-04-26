@@ -19,7 +19,7 @@ def health_check(request):
     """
     return JsonResponse({
         'status': 'ok',
-        'version': '0.1.1',
+        'version': '0.1.2',
         'service': 'api-gateway'
     })
 
