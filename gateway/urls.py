@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from django.http import JsonResponse
 from . import views
 
 # API router
@@ -12,9 +13,22 @@ router.register(r'logs', views.ApiLogViewSet)
 
 app_name = 'gateway'
 
+def health_check(request):
+    """
+    Simple health check endpoint that returns a 200 OK response.
+    """
+    return JsonResponse({
+        'status': 'ok',
+        'version': '0.1.2',
+        'service': 'api-gateway'
+    })
+
 urlpatterns = [
     # API endpoints
     path('api/v1/', include(router.urls)),
+    
+    # Health check endpoint
+    path('health/', health_check, name='health_check'),
     
     # Web interface
     path('', views.dashboard, name='dashboard'),

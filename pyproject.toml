@@ -2,21 +2,31 @@
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["gateway", "api_gateway_project"]
+
 [project]
 name = "django-api-gateway"
-version = "0.1.1"
+version = "0.1.2"
 description = "API Gateway with Django and IFTTT-like interface"
 readme = "README.md"
 authors = [
-    {name = "OpenHands", email = "openhands@all-hands.dev"}
+    { name = "Peter Rosemann", email = "dkdndes@gmail.com" },
+    { name = "OpenHands",     email = "openhands@all-hands.dev" }
 ]
-license = {text = "MIT"}
+license = "MIT"
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
     "Framework :: Django",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "django>=5.0.0",
     "djangorestframework>=3.14.0",
@@ -25,27 +35,13 @@ dependencies = [
     "pyyaml>=6.0",
 ]
 
-[tool.setuptools]
-packages = ["api_gateway_project", "gateway"]
+keywords = ["django", "api-gateway", "ifttt", "webhooks"]
+
+[project.urls]
+Homepage     = "https://github.com/dkdndes/django-api-gateway"
+"Bug-Tracker"  = "https://github.com/dkdndes/django-api-gateway/issues"
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-django>=4.5.2",
-    "black>=23.0.0",
-    "isort>=5.12.0",
-    "flake8>=6.0.0",
-]
-
-[tool.black]
-line-length = 88
-target-version = ["py38", "py39", "py310", "py311", "py312"]
-include = '\.pyi?$'
-
-[tool.isort]
-profile = "black"
-line_length = 88
-
-[tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "api_gateway_project.settings"
-python_files = ["test_*.py", "*_test.py"]
+test = ["pytest", "pytest-django", "pytest-cov"]
+docs = ["mkdocs", "mkdocstrings"]
+dev = ["pytest", "pytest-django", "pytest-cov", "mkdocs", "mkdocstrings"]
