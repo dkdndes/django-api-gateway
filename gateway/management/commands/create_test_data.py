@@ -1,10 +1,12 @@
 from django.core.management.base import BaseCommand
 from gateway.models import Domain, ApiEndpoint, RequestTransformation, ResponseTransformation
+from django.core.management import call_command
 
 class Command(BaseCommand):
     help = 'Creates test data for the API Gateway'
 
     def handle(self, *args, **options):
+        # First create the standard test data
         # Create test domains
         self.stdout.write('Creating test domains...')
         
@@ -150,4 +152,10 @@ class Command(BaseCommand):
         else:
             self.stdout.write(f'Response transformation already exists: {resp_transform}')
         
-        self.stdout.write(self.style.SUCCESS('Test data creation completed!'))
+        self.stdout.write(self.style.SUCCESS('Standard test data creation completed!'))
+        
+        # Now create The Cat API test data
+        self.stdout.write('Creating The Cat API test data...')
+        call_command('create_catapi_data')
+        
+        self.stdout.write(self.style.SUCCESS('All test data creation completed!'))
