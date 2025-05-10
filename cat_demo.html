@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat API Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .cat-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        .breed-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .breed-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .breed-card:hover {
+            transform: translateY(-5px);
+        }
+        .breed-details {
+            margin-top: 20px;
+        }
+        .breed-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        .error {
+            color: #d9534f;
+            padding: 10px;
+            background-color: #f9f2f2;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cat API Demo</h1>
+    
+    <div class="container">
+        <div class="card">
+            <h2>Random Cat</h2>
+            <button id="random-cat-btn">Get Random Cat</button>
+            <div id="random-cat-container" class="breed-images"></div>
+        </div>
+        
+        <div class="card">
+            <h2>Cat Breeds</h2>
+            <div id="breeds-container" class="breed-list">
+                <div class="loading">Loading breeds...</div>
+            </div>
+        </div>
+        
+        <div class="card" id="breed-detail-card" style="display: none;">
+            <h2>Breed Details</h2>
+            <div id="breed-detail-container" class="breed-details"></div>
+            <h3>Breed Images</h3>
+            <div id="breed-images-container" class="breed-images"></div>
+        </div>
+    </div>
+
+    <script>
+        // API Gateway base URL
+        const API_BASE_URL = 'http://localhost:12000/api';
+        
+        // Function to fetch data from API
+        async function fetchFromAPI(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return null;
+            }
+        }
+        
+        // Function to get random cat
+        async function getRandomCat() {
+            const container = document.getElementById('random-cat-container');
+            container.innerHTML = '<div class="loading">Loading random cat...</div>';
+            
+            const data = await fetchFromAPI('/cats/random');
+            if (data && data.length > 0) {
+                const cat = data[0];
+                container.innerHTML = `
+                    <img src="${cat.url}" alt="Random Cat" class="cat-image">
+                `;
+            } else {
+                container.innerHTML = '<div class="error">Failed to load random cat</div>';
+            }
+        }
+        
+        // Function to load all breeds
+        async function loadBreeds() {
+            const container = document.getElementById('breeds-container');
+            
+            const data = await fetchFromAPI('/cats/breeds');
+            if (data && data.length > 0) {
+                container.innerHTML = '';
+                data.forEach(breed => {
+                    const breedCard = document.createElement('div');
+                    breedCard.className = 'breed-card';
+                    breedCard.innerHTML = `
+                        <h3>${breed.name}</h3>
+                        <p><strong>Origin:</strong> ${breed.origin || 'Unknown'}</p>
+                        <p><strong>Temperament:</strong> ${breed.temperament || 'Not specified'}</p>
+                    `;
+                    breedCard.addEventListener('click', () => showBreedDetails(breed));
+                    container.appendChild(breedCard);
+                });
+            } else {
+                container.innerHTML = '<div class="error">Failed to load breeds</div>';
+            }
+        }
+        
+        // Function to show breed details
+        async function showBreedDetails(breed) {
+            const detailCard = document.getElementById('breed-detail-card');
+            const detailContainer = document.getElementById('breed-detail-container');
+            const imagesContainer = document.getElementById('breed-images-container');
+            
+            detailCard.style.display = 'block';
+            detailContainer.innerHTML = `
+                <h3>${breed.name}</h3>
+                <p><strong>Origin:</strong> ${breed.origin || 'Unknown'}</p>
+                <p><strong>Temperament:</strong> ${breed.temperament || 'Not specified'}</p>
+                <p><strong>Description:</strong> ${breed.description || 'No description available'}</p>
+                <p><strong>Life Span:</strong> ${breed.life_span || 'Unknown'} years</p>
+                <p><strong>Weight:</strong> ${breed.weight?.metric || 'Unknown'} kg</p>
+                ${breed.wikipedia_url ? `<p><a href="${breed.wikipedia_url}" target="_blank">Wikipedia</a></p>` : ''}
+            `;
+            
+            imagesContainer.innerHTML = '<div class="loading">Loading breed images...</div>';
+            
+            const images = await fetchFromAPI(`/cats/images/breed?breed_ids=${breed.id}&limit=10`);
+            if (images && images.length > 0) {
+                imagesContainer.innerHTML = '';
+                images.forEach(image => {
+                    imagesContainer.innerHTML += `
+                        <img src="${image.url}" alt="${breed.name}" class="cat-image">
+                    `;
+                });
+            } else {
+                imagesContainer.innerHTML = '<div class="error">No images found for this breed</div>';
+            }
+            
+            // Scroll to the detail card
+            detailCard.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Event listeners
+        document.getElementById('random-cat-btn').addEventListener('click', getRandomCat);
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            getRandomCat();
+            loadBreeds();
+        });
+    </script>
+</body>
+</html>

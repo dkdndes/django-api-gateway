@@ -1,0 +1,118 @@
+{% extends 'cat_api/base.html' %}
+
+{% block title %}My Favorite Cats - Cat API{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1>My Favorite Cats</h1>
+        <p class="lead">Your collection of favorite cat images.</p>
+    </div>
+</div>
+
+<div class="row">
+    {% if favorites %}
+        {% for favorite in favorites %}
+            <div class="col-md-3 mb-4 favorite-card" data-id="{{ favorite.id }}">
+                <div class="card cat-card">
+                    <div class="position-relative">
+                        <img src="{{ favorite.image.url }}" class="card-img-top" alt="Cat Image" style="height: 200px; object-fit: cover;">
+                        <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 remove-favorite-btn" data-image-id="{{ favorite.image.image_id }}">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            <small class="text-muted">Added on {{ favorite.created_at|date:"F j, Y" }}</small>
+                        </p>
+                        {% if favorite.image.breeds.all %}
+                            <p class="mb-1">Breeds:</p>
+                            <ul class="list-unstyled">
+                                {% for breed in favorite.image.breeds.all %}
+                                    <li>
+                                        <a href="{% url 'cat-breed-detail' breed.breed_id %}">{{ breed.name }}</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">No breed information</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <p>You don't have any favorite cats yet.</p>
+                <a href="{% url 'cat-home' %}" class="btn btn-primary">Find Some Cats</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add event listeners to remove favorite buttons
+        document.querySelectorAll('.remove-favorite-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const imageId = this.getAttribute('data-image-id');
+                const card = this.closest('.favorite-card');
+                
+                removeFromFavorites(imageId, card);
+            });
+        });
+        
+        function removeFromFavorites(imageId, card) {
+            const csrftoken = getCookie('csrftoken');
+            
+            fetch(`/cats/api/favorites/remove/?image_id=${imageId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Remove the card with animation
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.8)';
+                card.style.transition = 'opacity 0.3s, transform 0.3s';
+                
+                setTimeout(() => {
+                    card.remove();
+                    
+                    // Check if there are no more favorites
+                    if (document.querySelectorAll('.favorite-card').length === 0) {
+                        const row = document.querySelector('.row:last-child');
+                        row.innerHTML = `
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    <p>You don't have any favorite cats yet.</p>
+                                    <a href="{% url 'cat-home' %}" class="btn btn-primary">Find Some Cats</a>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }, 300);
+            })
+            .catch(error => {
+                console.error('Error removing from favorites:', error);
+                alert('Error removing from favorites. Please try again.');
+            });
+        }
+    });
+</script>
+{% endblock %}

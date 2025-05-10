@@ -30,4 +30,7 @@ urlpatterns = [
     
     # Google Sheets URLs
     path('sheets/', include('google_sheets.urls')),
+    
+    # Cat API URLs
+    path('cats/', include('cat_api.urls')),
 ]
