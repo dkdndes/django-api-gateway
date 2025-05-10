@@ -24,4 +24,10 @@ urlpatterns = [
     path('', include('gateway.urls')),
     path('api-auth/', include('rest_framework.urls')),
     # path('docs/', include_docs_urls(title='API Gateway API')),
+    
+    # Django AllAuth URLs
+    path('accounts/', include('allauth.urls')),
+    
+    # Google Sheets URLs
+    path('sheets/', include('google_sheets.urls')),
 ]

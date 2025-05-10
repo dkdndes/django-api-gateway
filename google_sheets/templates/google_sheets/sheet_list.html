@@ -1,0 +1,221 @@
+{% extends "google_sheets/base.html" %}
+
+{% block title %}My Google Sheets{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>My Google Sheets</h1>
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSheetModal">
+            Add New Sheet
+        </button>
+    </div>
+</div>
+
+{% if sheets %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for sheet in sheets %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ sheet.name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Sheet ID: {{ sheet.sheet_id }}</h6>
+                        <p class="card-text">{{ sheet.description|default:"No description" }}</p>
+                        <p class="card-text"><small class="text-muted">Last updated: {{ sheet.updated_at|date:"F j, Y, g:i a" }}</small></p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'sheet-detail' sheet.id %}" class="btn btn-sm btn-primary">View Data</a>
+                        <button class="btn btn-sm btn-success sync-btn" data-sheet-id="{{ sheet.id }}">Sync Data</button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-sheet-id="{{ sheet.id }}" data-sheet-name="{{ sheet.name }}">Delete</button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        You don't have any Google Sheets connected yet. Click the "Add New Sheet" button to get started.
+    </div>
+{% endif %}
+
+<!-- Add Sheet Modal -->
+<div class="modal fade" id="addSheetModal" tabindex="-1" aria-labelledby="addSheetModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSheetModalLabel">Add New Google Sheet</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSheetForm">
+                    <div class="mb-3">
+                        <label for="sheetId" class="form-label">Google Sheet ID</label>
+                        <input type="text" class="form-control" id="sheetId" name="sheet_id" required>
+                        <div class="form-text">The ID is the part of the URL after "spreadsheets/d/" and before "/edit".</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sheetName" class="form-label">Sheet Name</label>
+                        <input type="text" class="form-control" id="sheetName" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sheetDescription" class="form-label">Description (Optional)</label>
+                        <textarea class="form-control" id="sheetDescription" name="description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveSheetBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteSheetModal" tabindex="-1" aria-labelledby="deleteSheetModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteSheetModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the sheet "<span id="deleteSheetName"></span>"?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add new sheet
+        document.getElementById('saveSheetBtn').addEventListener('click', function() {
+            const form = document.getElementById('addSheetForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            fetch('/sheets/api/sheets/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(JSON.stringify(data));
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error adding sheet: ' + error.message);
+            });
+        });
+        
+        // Sync sheet data
+        document.querySelectorAll('.sync-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const sheetId = this.getAttribute('data-sheet-id');
+                this.disabled = true;
+                this.innerHTML = 'Syncing...';
+                
+                fetch(`/sheets/api/sheets/${sheetId}/sync/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.error || 'Error syncing data');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(error.message);
+                })
+                .finally(() => {
+                    this.disabled = false;
+                    this.innerHTML = 'Sync Data';
+                });
+            });
+        });
+        
+        // Delete sheet
+        let sheetToDelete = null;
+        
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const sheetId = this.getAttribute('data-sheet-id');
+                const sheetName = this.getAttribute('data-sheet-name');
+                sheetToDelete = sheetId;
+                
+                document.getElementById('deleteSheetName').textContent = sheetName;
+                const deleteModal = new bootstrap.Modal(document.getElementById('deleteSheetModal'));
+                deleteModal.show();
+            });
+        });
+        
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (sheetToDelete) {
+                fetch(`/sheets/api/sheets/${sheetToDelete}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error deleting sheet');
+                    }
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(error.message);
+                });
+            }
+        });
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}
