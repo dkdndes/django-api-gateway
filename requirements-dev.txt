@@ -14,7 +14,7 @@ coreapi==2.3.3
     # via django-api-gateway (pyproject.toml)
 coreschema==0.0.4
     # via coreapi
-django==5.2
+django==5.2.1
     # via
     #   django-api-gateway (pyproject.toml)
     #   djangorestframework
