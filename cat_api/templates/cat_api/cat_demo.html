@@ -1,0 +1,151 @@
+{% extends "cat_api/base.html" %}
+{% load static %}
+
+{% block title %}Cat API - Interactive Demo{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="jumbotron bg-light p-5 rounded">
+            <h1 class="display-4">Cat API Demo</h1>
+            <p class="lead">Interactive demonstration of TheCatAPI integration</p>
+            <hr class="my-4">
+            <p>This page showcases the various features of our Cat API integration using Django and HTMX.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Random Cats</h3>
+            </div>
+            <div class="card-body">
+                <p>Click the button to load random cat images using HTMX.</p>
+                <button class="btn btn-primary mb-3" hx-get="{% url 'cat_api:random_cats' %}?limit=4" 
+                        hx-target="#random-cats-demo" hx-swap="innerHTML">
+                    Load Random Cats
+                </button>
+                <div id="random-cats-demo" class="row row-cols-1 row-cols-md-2 g-4">
+                    <!-- Random cats will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Cat Breeds</h3>
+            </div>
+            <div class="card-body">
+                <p>Select a breed to view its details and images.</p>
+                <select id="breed-select" class="form-select mb-3">
+                    <option value="">Select a breed</option>
+                    {% for breed in breeds %}
+                    <option value="{{ breed.breed_id }}">{{ breed.name }}</option>
+                    {% endfor %}
+                </select>
+                <div id="breed-detail-demo">
+                    <!-- Breed details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Favorites</h3>
+            </div>
+            <div class="card-body">
+                {% if user.is_authenticated %}
+                <p>Your favorite cat images will appear here. Click the heart icon on any cat image to add it to your favorites.</p>
+                <div id="favorites-demo" class="row row-cols-1 row-cols-md-4 g-4">
+                    {% for favorite in favorites %}
+                    <div class="col">
+                        <div class="card cat-card">
+                            <img src="{{ favorite.image.url }}" class="card-img-top cat-image" alt="Cat">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="{{ favorite.image.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">View Full Size</a>
+                                    {% include "cat_api/partials/favorite_button.html" with image=favorite.image is_favorite=True %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info">You haven't added any favorites yet.</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <p>Please <a href="{% url 'account_login' %}">log in</a> to save your favorite cat images.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">API Endpoints</h3>
+            </div>
+            <div class="card-body">
+                <p>The following API endpoints are available:</p>
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <strong>GET /api/cats/random</strong>
+                        <p>Get random cat images</p>
+                        <a href="/api/cats/random?limit=5" target="_blank" class="btn btn-sm btn-outline-primary">Try it</a>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>GET /api/cats/breeds</strong>
+                        <p>Get a list of all cat breeds</p>
+                        <a href="/api/cats/breeds" target="_blank" class="btn btn-sm btn-outline-primary">Try it</a>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>GET /api/cats/breeds/{breed_id}</strong>
+                        <p>Get details for a specific cat breed</p>
+                        <a href="/api/cats/breeds/abys" target="_blank" class="btn btn-sm btn-outline-primary">Try it (Abyssinian)</a>
+                    </li>
+                    <li class="list-group-item">
+                        <strong>GET /api/cats/breeds/{breed_id}/images</strong>
+                        <p>Get images for a specific cat breed</p>
+                        <a href="/api/cats/breeds/abys/images?limit=5" target="_blank" class="btn btn-sm btn-outline-primary">Try it (Abyssinian)</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load random cats when page loads
+        document.querySelector('button[hx-get]').click();
+        
+        // Handle breed selection
+        const breedSelect = document.getElementById('breed-select');
+        breedSelect.addEventListener('change', function() {
+            const breedId = this.value;
+            if (breedId) {
+                // Load breed details
+                htmx.ajax('GET', `/cats/api/breeds/${breedId}`, {target: '#breed-detail-demo'});
+            } else {
+                document.getElementById('breed-detail-demo').innerHTML = '';
+            }
+        });
+    });
+</script>
+{% endblock %}

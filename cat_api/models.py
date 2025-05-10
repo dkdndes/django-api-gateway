@@ -27,6 +27,7 @@ class CatImage(models.Model):
     width = models.IntegerField(blank=True, null=True)
     height = models.IntegerField(blank=True, null=True)
     breeds = models.ManyToManyField(CatBreed, blank=True, related_name='images')
+    breed = models.ForeignKey(CatBreed, on_delete=models.SET_NULL, null=True, blank=True, related_name='primary_images')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
