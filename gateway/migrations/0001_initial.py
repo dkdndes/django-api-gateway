@@ -6,89 +6,314 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='ApiEndpoint',
+            name="ApiEndpoint",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('path', models.CharField(help_text="Path of the endpoint (e.g., '/users')", max_length=255)),
-                ('method', models.CharField(choices=[('GET', 'GET'), ('POST', 'POST'), ('PUT', 'PUT'), ('PATCH', 'PATCH'), ('DELETE', 'DELETE'), ('OPTIONS', 'OPTIONS'), ('HEAD', 'HEAD')], default='GET', help_text='HTTP method for this endpoint', max_length=10)),
-                ('target_url', models.CharField(help_text='Target URL to forward the request to', max_length=255, validators=[django.core.validators.URLValidator()])),
-                ('timeout', models.IntegerField(default=30, help_text='Timeout in seconds for the request')),
-                ('is_active', models.BooleanField(default=True, help_text='Whether this endpoint is active')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "path",
+                    models.CharField(
+                        help_text="Path of the endpoint (e.g., '/users')",
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "method",
+                    models.CharField(
+                        choices=[
+                            ("GET", "GET"),
+                            ("POST", "POST"),
+                            ("PUT", "PUT"),
+                            ("PATCH", "PATCH"),
+                            ("DELETE", "DELETE"),
+                            ("OPTIONS", "OPTIONS"),
+                            ("HEAD", "HEAD"),
+                        ],
+                        default="GET",
+                        help_text="HTTP method for this endpoint",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "target_url",
+                    models.CharField(
+                        help_text="Target URL to forward the request to",
+                        max_length=255,
+                        validators=[django.core.validators.URLValidator()],
+                    ),
+                ),
+                (
+                    "timeout",
+                    models.IntegerField(
+                        default=30, help_text="Timeout in seconds for the request"
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True, help_text="Whether this endpoint is active"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Domain',
+            name="Domain",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(help_text="Domain name (e.g., 'example.com')", max_length=255, unique=True)),
-                ('base_url', models.CharField(help_text="Base URL for the domain (e.g., 'https://api.example.com')", max_length=255, validators=[django.core.validators.URLValidator()])),
-                ('description', models.TextField(blank=True, help_text='Description of the domain', null=True)),
-                ('is_active', models.BooleanField(default=True, help_text='Whether this domain is active')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        help_text="Domain name (e.g., 'example.com')",
+                        max_length=255,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "base_url",
+                    models.CharField(
+                        help_text="Base URL for the domain (e.g., 'https://api.example.com')",
+                        max_length=255,
+                        validators=[django.core.validators.URLValidator()],
+                    ),
+                ),
+                (
+                    "description",
+                    models.TextField(
+                        blank=True, help_text="Description of the domain", null=True
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True, help_text="Whether this domain is active"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
         ),
         migrations.CreateModel(
-            name='ApiLog',
+            name="ApiLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('request_method', models.CharField(help_text='HTTP method of the request', max_length=10)),
-                ('request_path', models.CharField(help_text='Path of the request', max_length=255)),
-                ('request_headers', models.TextField(blank=True, help_text='Headers of the request', null=True)),
-                ('request_body', models.TextField(blank=True, help_text='Body of the request', null=True)),
-                ('response_status', models.IntegerField(help_text='Status code of the response')),
-                ('response_headers', models.TextField(blank=True, help_text='Headers of the response', null=True)),
-                ('response_body', models.TextField(blank=True, help_text='Body of the response', null=True)),
-                ('execution_time', models.FloatField(help_text='Execution time in seconds')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('endpoint', models.ForeignKey(help_text='Endpoint this log belongs to', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='logs', to='gateway.apiendpoint')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "request_method",
+                    models.CharField(
+                        help_text="HTTP method of the request", max_length=10
+                    ),
+                ),
+                (
+                    "request_path",
+                    models.CharField(help_text="Path of the request", max_length=255),
+                ),
+                (
+                    "request_headers",
+                    models.TextField(
+                        blank=True, help_text="Headers of the request", null=True
+                    ),
+                ),
+                (
+                    "request_body",
+                    models.TextField(
+                        blank=True, help_text="Body of the request", null=True
+                    ),
+                ),
+                (
+                    "response_status",
+                    models.IntegerField(help_text="Status code of the response"),
+                ),
+                (
+                    "response_headers",
+                    models.TextField(
+                        blank=True, help_text="Headers of the response", null=True
+                    ),
+                ),
+                (
+                    "response_body",
+                    models.TextField(
+                        blank=True, help_text="Body of the response", null=True
+                    ),
+                ),
+                (
+                    "execution_time",
+                    models.FloatField(help_text="Execution time in seconds"),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "endpoint",
+                    models.ForeignKey(
+                        help_text="Endpoint this log belongs to",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="logs",
+                        to="gateway.apiendpoint",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='apiendpoint',
-            name='domain',
-            field=models.ForeignKey(help_text='Domain this endpoint belongs to', on_delete=django.db.models.deletion.CASCADE, related_name='endpoints', to='gateway.domain'),
+            model_name="apiendpoint",
+            name="domain",
+            field=models.ForeignKey(
+                help_text="Domain this endpoint belongs to",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="endpoints",
+                to="gateway.domain",
+            ),
         ),
         migrations.CreateModel(
-            name='RequestTransformation',
+            name="RequestTransformation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('source_field', models.CharField(help_text='Source field in the request', max_length=255)),
-                ('target_field', models.CharField(help_text='Target field in the transformed request', max_length=255)),
-                ('transformation_type', models.CharField(default='direct', help_text="Type of transformation (e.g., 'direct', 'template')", max_length=50)),
-                ('transformation_value', models.TextField(blank=True, help_text='Value or template for the transformation', null=True)),
-                ('is_active', models.BooleanField(default=True, help_text='Whether this transformation is active')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('endpoint', models.ForeignKey(help_text='Endpoint this transformation belongs to', on_delete=django.db.models.deletion.CASCADE, related_name='request_transformations', to='gateway.apiendpoint')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "source_field",
+                    models.CharField(
+                        help_text="Source field in the request", max_length=255
+                    ),
+                ),
+                (
+                    "target_field",
+                    models.CharField(
+                        help_text="Target field in the transformed request",
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "transformation_type",
+                    models.CharField(
+                        default="direct",
+                        help_text="Type of transformation (e.g., 'direct', 'template')",
+                        max_length=50,
+                    ),
+                ),
+                (
+                    "transformation_value",
+                    models.TextField(
+                        blank=True,
+                        help_text="Value or template for the transformation",
+                        null=True,
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True, help_text="Whether this transformation is active"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "endpoint",
+                    models.ForeignKey(
+                        help_text="Endpoint this transformation belongs to",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="request_transformations",
+                        to="gateway.apiendpoint",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ResponseTransformation',
+            name="ResponseTransformation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('source_field', models.CharField(help_text='Source field in the response', max_length=255)),
-                ('target_field', models.CharField(help_text='Target field in the transformed response', max_length=255)),
-                ('transformation_type', models.CharField(default='direct', help_text="Type of transformation (e.g., 'direct', 'template')", max_length=50)),
-                ('transformation_value', models.TextField(blank=True, help_text='Value or template for the transformation', null=True)),
-                ('is_active', models.BooleanField(default=True, help_text='Whether this transformation is active')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('endpoint', models.ForeignKey(help_text='Endpoint this transformation belongs to', on_delete=django.db.models.deletion.CASCADE, related_name='response_transformations', to='gateway.apiendpoint')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "source_field",
+                    models.CharField(
+                        help_text="Source field in the response", max_length=255
+                    ),
+                ),
+                (
+                    "target_field",
+                    models.CharField(
+                        help_text="Target field in the transformed response",
+                        max_length=255,
+                    ),
+                ),
+                (
+                    "transformation_type",
+                    models.CharField(
+                        default="direct",
+                        help_text="Type of transformation (e.g., 'direct', 'template')",
+                        max_length=50,
+                    ),
+                ),
+                (
+                    "transformation_value",
+                    models.TextField(
+                        blank=True,
+                        help_text="Value or template for the transformation",
+                        null=True,
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True, help_text="Whether this transformation is active"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "endpoint",
+                    models.ForeignKey(
+                        help_text="Endpoint this transformation belongs to",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="response_transformations",
+                        to="gateway.apiendpoint",
+                    ),
+                ),
             ],
         ),
         migrations.AlterUniqueTogether(
-            name='apiendpoint',
-            unique_together={('domain', 'path', 'method')},
+            name="apiendpoint",
+            unique_together={("domain", "path", "method")},
         ),
     ]

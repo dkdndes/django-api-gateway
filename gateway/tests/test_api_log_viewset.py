@@ -19,9 +19,9 @@ def test_api_log_list(api_client):
         path="/test",
         method="GET",
         target_url="https://example.com/api/test",
-        is_active=True
+        is_active=True,
     )
-    
+
     # Create logs
     for i in range(5):
         ApiLog.objects.create(
@@ -29,23 +29,23 @@ def test_api_log_list(api_client):
             request_method="GET",
             request_path=f"/test{i}",
             response_status=200,
-            execution_time=0.1 * i
+            execution_time=0.1 * i,
         )
-    
+
     # Make the request
-    url = '/api/v1/logs/'
+    url = "/api/v1/logs/"
     response = api_client.get(url)
-    
+
     # Check response
     assert response.status_code == 200
     assert len(response.data) == 5
-    
+
     # Check search filter
-    response = api_client.get(url + '?search=/test1')
+    response = api_client.get(url + "?search=/test1")
     assert response.status_code == 200
-    
+
     # Check ordering
-    response = api_client.get(url + '?ordering=execution_time')
+    response = api_client.get(url + "?ordering=execution_time")
     assert response.status_code == 200
 
 
@@ -59,9 +59,9 @@ def test_api_log_detail(api_client):
         path="/test",
         method="GET",
         target_url="https://example.com/api/test",
-        is_active=True
+        is_active=True,
     )
-    
+
     # Create log
     log = ApiLog.objects.create(
         endpoint=endpoint,
@@ -72,24 +72,24 @@ def test_api_log_detail(api_client):
         request_headers='{"Content-Type": "application/json"}',
         response_headers='{"Content-Type": "application/json"}',
         request_body='{"test": "data"}',
-        response_body='{"result": "success"}'
+        response_body='{"result": "success"}',
     )
-    
+
     # Make the request
-    url = f'/api/v1/logs/{log.id}/'
+    url = f"/api/v1/logs/{log.id}/"
     response = api_client.get(url)
-    
+
     # Check response
     assert response.status_code == 200
-    assert response.data['id'] == log.id
-    assert response.data['request_method'] == 'GET'
-    assert response.data['request_path'] == '/test'
-    assert response.data['response_status'] == 200
-    assert float(response.data['execution_time']) == 0.1
-    assert 'request_headers' in response.data
-    assert 'response_headers' in response.data
-    assert 'request_body' in response.data
-    assert 'response_body' in response.data
+    assert response.data["id"] == log.id
+    assert response.data["request_method"] == "GET"
+    assert response.data["request_path"] == "/test"
+    assert response.data["response_status"] == 200
+    assert float(response.data["execution_time"]) == 0.1
+    assert "request_headers" in response.data
+    assert "response_headers" in response.data
+    assert "request_body" in response.data
+    assert "response_body" in response.data
 
 
 @pytest.mark.django_db
@@ -102,22 +102,22 @@ def test_api_log_create_not_allowed(api_client):
         path="/test",
         method="GET",
         target_url="https://example.com/api/test",
-        is_active=True
+        is_active=True,
     )
-    
+
     # Prepare data
     data = {
-        'endpoint': endpoint.id,
-        'request_method': 'GET',
-        'request_path': '/test',
-        'response_status': 200,
-        'execution_time': 0.1
+        "endpoint": endpoint.id,
+        "request_method": "GET",
+        "request_path": "/test",
+        "response_status": 200,
+        "execution_time": 0.1,
     }
-    
+
     # Make the request
-    url = '/api/v1/logs/'
-    response = api_client.post(url, data, format='json')
-    
+    url = "/api/v1/logs/"
+    response = api_client.post(url, data, format="json")
+
     # Check response (should be 405 Method Not Allowed)
     assert response.status_code == 405
 
@@ -132,31 +132,31 @@ def test_api_log_update_not_allowed(api_client):
         path="/test",
         method="GET",
         target_url="https://example.com/api/test",
-        is_active=True
+        is_active=True,
     )
-    
+
     # Create log
     log = ApiLog.objects.create(
         endpoint=endpoint,
         request_method="GET",
         request_path="/test",
         response_status=200,
-        execution_time=0.1
+        execution_time=0.1,
     )
-    
+
     # Prepare data
     data = {
-        'endpoint': endpoint.id,
-        'request_method': 'POST',  # Changed
-        'request_path': '/test-updated',  # Changed
-        'response_status': 201,  # Changed
-        'execution_time': 0.2  # Changed
+        "endpoint": endpoint.id,
+        "request_method": "POST",  # Changed
+        "request_path": "/test-updated",  # Changed
+        "response_status": 201,  # Changed
+        "execution_time": 0.2,  # Changed
     }
-    
+
     # Make the request
-    url = f'/api/v1/logs/{log.id}/'
-    response = api_client.put(url, data, format='json')
-    
+    url = f"/api/v1/logs/{log.id}/"
+    response = api_client.put(url, data, format="json")
+
     # Check response (should be 405 Method Not Allowed)
     assert response.status_code == 405
 
@@ -171,21 +171,21 @@ def test_api_log_delete_not_allowed(api_client):
         path="/test",
         method="GET",
         target_url="https://example.com/api/test",
-        is_active=True
+        is_active=True,
     )
-    
+
     # Create log
     log = ApiLog.objects.create(
         endpoint=endpoint,
         request_method="GET",
         request_path="/test",
         response_status=200,
-        execution_time=0.1
+        execution_time=0.1,
     )
-    
+
     # Make the request
-    url = f'/api/v1/logs/{log.id}/'
+    url = f"/api/v1/logs/{log.id}/"
     response = api_client.delete(url)
-    
+
     # Check response (should be 405 Method Not Allowed)
     assert response.status_code == 405
