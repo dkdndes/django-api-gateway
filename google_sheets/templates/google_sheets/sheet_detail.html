@@ -1,0 +1,157 @@
+{% extends "google_sheets/base.html" %}
+
+{% block title %}{{ sheet.name }} - Google Sheet{% endblock %}
+
+{% block extra_css %}
+<style>
+    .table-responsive {
+        max-height: 600px;
+    }
+    .table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        z-index: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>{{ sheet.name }}</h1>
+        <p class="text-muted">Sheet ID: {{ sheet.sheet_id }}</p>
+        {% if sheet.description %}
+            <p>{{ sheet.description }}</p>
+        {% endif %}
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'sheet-list' %}" class="btn btn-secondary">Back to List</a>
+        <button class="btn btn-success" id="syncBtn" data-sheet-id="{{ sheet.id }}">Sync Data</button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Sheet Data</h5>
+        <div>
+            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search...">
+        </div>
+    </div>
+    <div class="card-body">
+        {% if rows %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Row #</th>
+                            {% for header in headers %}
+                                <th>{{ header }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                            <tr>
+                                <td>{{ row.row_number }}</td>
+                                {% for header in headers %}
+                                    <td>{{ row|get_item:header }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                No data available. Click the "Sync Data" button to fetch data from Google Sheets.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sync button functionality
+        document.getElementById('syncBtn').addEventListener('click', function() {
+            const sheetId = this.getAttribute('data-sheet-id');
+            this.disabled = true;
+            this.innerHTML = 'Syncing...';
+            
+            fetch(`/sheets/api/sheets/${sheetId}/sync/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Error syncing data');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert(data.message);
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message);
+            })
+            .finally(() => {
+                this.disabled = false;
+                this.innerHTML = 'Sync Data';
+            });
+        });
+        
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchText = this.value.toLowerCase();
+                const table = document.getElementById('dataTable');
+                if (table) {
+                    const rows = table.getElementsByTagName('tr');
+                    
+                    for (let i = 1; i < rows.length; i++) { // Skip header row
+                        const row = rows[i];
+                        const cells = row.getElementsByTagName('td');
+                        let found = false;
+                        
+                        for (let j = 0; j < cells.length; j++) {
+                            const cellText = cells[j].textContent.toLowerCase();
+                            if (cellText.includes(searchText)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        
+                        row.style.display = found ? '' : 'none';
+                    }
+                }
+            });
+        }
+        
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}

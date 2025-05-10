@@ -1,0 +1,188 @@
+{% extends 'cat_api/base.html' %}
+
+{% block title %}{{ breed.name }} - Cat API{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'cat-home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'cat-breeds' %}">Breeds</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ breed.name }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <h1>{{ breed.name }}</h1>
+        <p class="lead">{{ breed.description }}</p>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Characteristics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Origin:</strong> {{ breed.origin }}</p>
+                        <p><strong>Temperament:</strong> {{ breed.temperament }}</p>
+                        <p><strong>Life Span:</strong> {{ breed.life_span }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Weight (Imperial):</strong> {{ breed.weight_imperial }}</p>
+                        <p><strong>Weight (Metric):</strong> {{ breed.weight_metric }}</p>
+                        {% if breed.wikipedia_url %}
+                        <p><strong>Wikipedia:</strong> <a href="{{ breed.wikipedia_url }}" target="_blank">{{ breed.wikipedia_url }}</a></p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <button id="loadImagesBtn" class="btn btn-primary">Load Images of {{ breed.name }}</button>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">API Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Breed ID:</strong> {{ breed.breed_id }}</p>
+                <p><strong>Added to Database:</strong> {{ breed.created_at|date:"F j, Y" }}</p>
+                <p><strong>Last Updated:</strong> {{ breed.updated_at|date:"F j, Y" }}</p>
+                <hr>
+                <h6>API Endpoints:</h6>
+                <ul>
+                    <li><code>GET /cats/api/breeds/{{ breed.id }}/</code></li>
+                    <li><code>GET /cats/api/images/random/?breed_id={{ breed.breed_id }}</code></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4" id="breedImages" style="display: none;">
+    <div class="col-md-12">
+        <h2>{{ breed.name }} Images</h2>
+        <div class="row" id="imagesContainer"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loadImagesBtn = document.getElementById('loadImagesBtn');
+        const breedImages = document.getElementById('breedImages');
+        const imagesContainer = document.getElementById('imagesContainer');
+        
+        loadImagesBtn.addEventListener('click', function() {
+            loadImagesBtn.disabled = true;
+            loadImagesBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+            
+            fetch(`/cats/api/images/random/?breed_id={{ breed.breed_id }}&limit=8`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    imagesContainer.innerHTML = '';
+                    
+                    if (data && data.length > 0) {
+                        data.forEach(image => {
+                            const col = document.createElement('div');
+                            col.className = 'col-md-3 mb-4';
+                            
+                            col.innerHTML = `
+                                <div class="card cat-card">
+                                    <img src="${image.url}" class="card-img-top" alt="{{ breed.name }}" style="height: 200px; object-fit: cover;">
+                                    <div class="card-body text-center">
+                                        <button class="btn btn-sm btn-outline-danger favorite-btn" data-image-id="${image.image_id}">
+                                            <i class="bi bi-heart"></i> Favorite
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            imagesContainer.appendChild(col);
+                        });
+                        
+                        // Add event listeners to favorite buttons
+                        document.querySelectorAll('.favorite-btn').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const imageId = this.getAttribute('data-image-id');
+                                addToFavorites(imageId, this);
+                            });
+                        });
+                        
+                        breedImages.style.display = 'block';
+                    } else {
+                        imagesContainer.innerHTML = '<div class="col-12"><div class="alert alert-info">No images found for this breed.</div></div>';
+                        breedImages.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching images:', error);
+                    imagesContainer.innerHTML = '<div class="col-12"><div class="alert alert-danger">Error loading images. Please try again.</div></div>';
+                    breedImages.style.display = 'block';
+                })
+                .finally(() => {
+                    loadImagesBtn.disabled = false;
+                    loadImagesBtn.innerHTML = 'Load Images of {{ breed.name }}';
+                });
+        });
+        
+        function addToFavorites(imageId, button) {
+            const csrftoken = getCookie('csrftoken');
+            
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+            
+            fetch('/cats/api/favorites/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    image_id: imageId
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = "{% url 'account_login' %}";
+                        return;
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                button.innerHTML = '<i class="bi bi-heart-fill"></i> Favorited';
+                button.classList.remove('btn-outline-danger');
+                button.classList.add('btn-danger');
+                button.disabled = true;
+            })
+            .catch(error => {
+                console.error('Error adding to favorites:', error);
+                button.innerHTML = '<i class="bi bi-heart"></i> Favorite';
+                button.disabled = false;
+                alert('Error adding to favorites. Please try again.');
+            });
+        }
+    });
+</script>
+{% endblock %}

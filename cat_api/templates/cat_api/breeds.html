@@ -1,0 +1,122 @@
+{% extends 'cat_api/base.html' %}
+
+{% block title %}Cat API - Breeds{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h1>Cat Breeds</h1>
+        <p class="lead">Explore different cat breeds and their characteristics.</p>
+        
+        {% if user.is_staff %}
+        <div class="mb-4">
+            <button id="syncBreedsBtn" class="btn btn-primary">
+                <i class="bi bi-arrow-repeat"></i> Sync Breeds from API
+            </button>
+        </div>
+        {% endif %}
+        
+        <div class="mb-3">
+            <input type="text" id="breedSearch" class="form-control" placeholder="Search breeds...">
+        </div>
+    </div>
+</div>
+
+<div class="row" id="breedsList">
+    {% if breeds %}
+        {% for breed in breeds %}
+            <div class="col-md-4 mb-4 breed-card">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ breed.name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Origin: {{ breed.origin }}</h6>
+                        <p class="card-text">{{ breed.description|truncatewords:30 }}</p>
+                        <p><strong>Temperament:</strong> {{ breed.temperament }}</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="{% url 'cat-breed-detail' breed.breed_id %}" class="btn btn-sm btn-primary">View Details</a>
+                        <a href="/cats/api/images/random/?breed_id={{ breed.breed_id }}" class="btn btn-sm btn-outline-secondary" target="_blank">Get Images</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                No breeds found. {% if user.is_staff %}Click the "Sync Breeds from API" button to fetch breeds.{% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const breedSearch = document.getElementById('breedSearch');
+        const breedCards = document.querySelectorAll('.breed-card');
+        
+        // Search functionality
+        breedSearch.addEventListener('keyup', function() {
+            const searchTerm = breedSearch.value.toLowerCase();
+            
+            breedCards.forEach(card => {
+                const title = card.querySelector('.card-title').textContent.toLowerCase();
+                const origin = card.querySelector('.card-subtitle').textContent.toLowerCase();
+                const description = card.querySelector('.card-text').textContent.toLowerCase();
+                const temperament = card.querySelector('p:last-of-type').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || 
+                    origin.includes(searchTerm) || 
+                    description.includes(searchTerm) || 
+                    temperament.includes(searchTerm)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+        
+        // Sync breeds functionality (for staff users)
+        const syncBreedsBtn = document.getElementById('syncBreedsBtn');
+        if (syncBreedsBtn) {
+            syncBreedsBtn.addEventListener('click', function() {
+                syncBreedsBtn.disabled = true;
+                syncBreedsBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Syncing...';
+                
+                const csrftoken = getCookie('csrftoken');
+                
+                fetch('/cats/api/breeds/sync/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(`Success: ${data.message}`);
+                    window.location.reload();
+                })
+                .catch(error => {
+                    console.error('Error syncing breeds:', error);
+                    alert('Error syncing breeds. Please try again.');
+                })
+                .finally(() => {
+                    syncBreedsBtn.disabled = false;
+                    syncBreedsBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Sync Breeds from API';
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}
